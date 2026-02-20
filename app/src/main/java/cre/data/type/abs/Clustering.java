@@ -29,14 +29,30 @@ public abstract class Clustering<C extends CRType<P>, P extends PubType<C>> {
 	private final double weight_doi = 1.0;
 	public static final double min_threshold = 0.5;
 	private int algorithm = 2;
+	private final CosineHelper cosineHelper = new CosineHelper();
+	private final JaccardHelper jaccardHelper = new JaccardHelper();
 	
 	public static enum ManualMatchType { SAME, DIFFERENT, EXTRACT }
 
 	public static enum ClusteringType { INIT, REFRESH }
 
 	public abstract void setBlockingRPY(String s);
-	
-	
+
+	public void setCosMode(String mode) {
+		cosineHelper.setMode(mode);
+	}
+
+	public void setCosParam(int i) {
+		cosineHelper.setParam(i);
+	}
+
+	public void setJaccMode(String mode) {
+		jaccardHelper.setMode(mode);
+	}
+
+	public void setJaccParam(int i) {
+		jaccardHelper.setParam(i);
+	}
 	
 	public void  crossCompareCR(List<C> crlist, StringMetric l, NewMatchingPair<C> onNewPair, String alg) {
 		
@@ -65,7 +81,7 @@ public abstract class Clustering<C extends CRType<P>, P extends PubType<C>> {
 					// the two CRs to be compared
 					C cr1 = crlist.get(xIndx);
 					C cr2 = crlist.get(xIndx+yIndx+1);
-					double s = simCR (cr1, cr2, s1, l, new JaccardHelper(JaccardHelper.Mode.WORD, 2), new CosineHelper(CosineHelper.Mode.CHAR, 2), alg);
+					double s = simCR (cr1, cr2, s1, l, jaccardHelper, cosineHelper, alg);
 					if (s >= min_threshold) {
 						onNewPair.accept(cr1, cr2, s);
 					}
@@ -155,7 +171,6 @@ public abstract class Clustering<C extends CRType<P>, P extends PubType<C>> {
 			}
 		}
 		//System.out.println((sim/weight > 0.90) ? sim/weight : "");
-		algorithm = 0;
 		return sim/weight;		// weighted average of AU_L, J_N, and TI
 	}
 

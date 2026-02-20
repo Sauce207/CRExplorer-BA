@@ -7,14 +7,20 @@ public final class JaccardHelper {
 
     public enum Mode { CHAR, WORD }
 
-    private final Mode mode;
-    private final int k; // Shingle-Größe (bei CHAR: k>=2 empfohlen; bei WORD: k>=1)
+    private Mode mode;
+    private int k; // Shingle-Größe (bei CHAR: k>=2 empfohlen; bei WORD: k>=1)
     int k2;
 
-    public JaccardHelper(Mode mode, int k) {
-        this.mode = Objects.requireNonNull(mode);
-        this.k = Math.max(k, mode == Mode.CHAR ? 2 : 1);
-        this.k2 = Math.max(k, mode == Mode.CHAR ? 2 : 1);
+    public void setMode(String mode2) {
+        switch(mode2.toLowerCase()) {
+            case "char" -> mode = JaccardHelper.Mode.CHAR;
+            case "word" -> mode = JaccardHelper.Mode.WORD;
+            default -> mode = JaccardHelper.Mode.CHAR;
+        }
+    }
+
+    public void setParam(int i) {
+        k = i;
     }
 
     public double compare(String a, String b) {

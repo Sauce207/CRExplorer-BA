@@ -8,13 +8,19 @@ public class CosineHelper {
 
     public enum Mode { WORD, CHAR }
 
-    private final Mode mode;
-    private final int n; // n-Gramm-Größe (für WORD: Wort-n-Gramme/Shingles, für CHAR: Zeichen-n-Gramme)
+    private Mode mode = Mode.CHAR;
+    private int n = 2; // n-Gramm-Größe (für WORD: Wort-n-Gramme/Shingles, für CHAR: Zeichen-n-Gramme)
 
-    public CosineHelper(Mode mode, int n) {
-        if (n < 1) throw new IllegalArgumentException("n must be >= 1");
-        this.mode = Objects.requireNonNull(mode);
-        this.n = n;
+    public void setMode(String mode2) {
+        switch(mode2.toLowerCase()) {
+            case "char" -> mode = Mode.CHAR;
+            case "word" -> mode = Mode.WORD;
+            default -> mode = Mode.CHAR;
+        }
+    }
+
+    public void setParam(int i) {
+        n = i;
     }
 
     public double compare(String s1, String s2) {
