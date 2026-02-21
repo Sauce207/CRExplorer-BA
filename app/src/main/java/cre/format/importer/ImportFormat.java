@@ -101,6 +101,10 @@ public enum ImportFormat {
 
 	public void load(List<File> files, IntRange rpyRange, boolean importCRsWithoutYear, IntRange pyRange, boolean importPubsWithoutYear, long noMaxCRs, Sampling sampling) throws OutOfMemoryError, Exception {
 
+		AtomicLong totalTitleLength = new AtomicLong(0);
+		AtomicLong totalAuthorLength = new AtomicLong(0);
+		AtomicLong totalImportedCRs = new AtomicLong(0);
+
 		if (isDataLoader()) {
 			this.dataLoader.accept(files);	
 			return;
@@ -181,12 +185,23 @@ public enum ImportFormat {
 						}
 				
 						// FIXME: getSizeCR()>0 or >=0 ? Or is this an option?
-						if (pub.getSizeCR()>=0) {	
-							
-							
+						if (pub.getSizeCR()>=0) {
+
+
 							pub.getCR().forEach(cr -> {
 								cr.setID(crId.incrementAndGet());
 								cr.setCluster(new CRCluster(cr));
+
+								// Statistik nur für importierte CRs
+								if (cr.getTI() != null && !cr.getTI().isEmpty()) {
+									totalTitleLength.addAndGet(cr.getTI().length());
+									totalImportedCRs.incrementAndGet();
+								}
+
+								if(cr.getAU() != null && !cr.getAU().isEmpty()) {
+									totalAuthorLength.addAndGet(cr.getAU().length());
+									totalImportedCRs.incrementAndGet();
+								}
 							});
 							
 							crTab.addPub(pub);
@@ -233,6 +248,16 @@ public enum ImportFormat {
 
 		CRELogger.get().logInfo("Update time is " + ((ts3-ts2)/1000d) + " seconds");
 		CRELogger.get().logInfo("Update Memory usage " + ((ms3-ms2)/1024d/1024d) + " MBytes");
+
+		if (totalImportedCRs.get() > 0) {
+			double avgTitleLength = (double) totalTitleLength.get() / totalImportedCRs.get();
+			double avgAuthorLength = (double) totalAuthorLength.get() / totalImportedCRs.get();
+			CRELogger.get().logInfo("Imported CRs: " + totalImportedCRs.get());
+			CRELogger.get().logInfo("Average imported CR title length: " + avgTitleLength + " characters");
+			CRELogger.get().logInfo("Average imported CR author length: " + avgAuthorLength + " characters");
+		} else {
+			CRELogger.get().logInfo("No imported CR titles available for statistics.");
+		}
 
 		
 		StatusBar.get().setValue(String.format("Loading %1$s file%2$s done", this.getLabel(), files.size()>1 ? "s" : ""));
